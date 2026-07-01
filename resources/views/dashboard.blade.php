@@ -2,7 +2,7 @@
     <div class="pb-12">
 
         {{-- Hero --}}
-        <div class="bg-gradient-to-r from-[#0288D1] via-[#03A9F4] to-[#4FC3F7] text-white">
+        <div class="bg-gradient-to-r from-[#03A9F4] via-[#0277BD] to-[#01579B] text-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 <h1 class="text-2xl sm:text-3xl font-bold">Bentornato, {{ Auth::user()->name }}</h1>
                 <p class="text-sky-100 mt-1">{{ now()->translatedFormat('l j F Y') }} — Pannello di controllo Studio Luma</p>

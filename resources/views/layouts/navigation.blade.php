@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-gradient-to-r from-[#0288D1] via-[#03A9F4] to-[#4FC3F7]">
+<nav x-data="{ open: false }" class="bg-gradient-to-r from-[#03A9F4] via-[#0277BD] to-[#01579B]">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-24">
