@@ -39,6 +39,16 @@
                         </div>
 
                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Username di rete (opzionale)</label>
+                            <input type="text" name="network_username" value="{{ old('network_username', $user->network_username) }}"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <p class="text-xs text-gray-500 mt-1">
+                                Lo username Windows/macOS/Linux usato per stampare via rete (IPP), per
+                                attribuire correttamente i job nel grafico "Stampe per utente".
+                            </p>
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-medium text-gray-700">
                                 Password {{ $user->exists ? '(lascia vuoto per non modificarla)' : '' }}
                             </label>

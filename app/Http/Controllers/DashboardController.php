@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\AdguardService;
 use App\Services\CupsService;
 use App\Services\SambaService;
@@ -41,10 +42,13 @@ class DashboardController extends Controller
     {
         $jobs = $this->safe(fn () => $this->cups->getJobs(), []);
 
+        $networkUsernames = User::whereNotNull('network_username')->pluck('name', 'network_username');
+
         $counts = [];
         foreach ($jobs as $job) {
             $owner = $job['user'] ?? 'sconosciuto';
-            $counts[$owner] = ($counts[$owner] ?? 0) + 1;
+            $label = $networkUsernames[$owner] ?? $owner;
+            $counts[$label] = ($counts[$label] ?? 0) + 1;
         }
 
         arsort($counts);

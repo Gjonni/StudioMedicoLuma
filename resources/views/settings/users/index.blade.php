@@ -26,6 +26,7 @@
                             <tr class="border-b">
                                 <th class="py-2">Nome</th>
                                 <th class="py-2">Email</th>
+                                <th class="py-2">Username di rete</th>
                                 <th class="py-2">Ruoli</th>
                                 <th class="py-2">Permessi diretti</th>
                                 <th class="py-2"></th>
@@ -36,6 +37,7 @@
                                 <tr class="border-b">
                                     <td class="py-2">{{ $user->name }}</td>
                                     <td class="py-2">{{ $user->email }}</td>
+                                    <td class="py-2">{{ $user->network_username ?: '—' }}</td>
                                     <td class="py-2">{{ $user->roles->pluck('name')->join(', ') ?: '—' }}</td>
                                     <td class="py-2">{{ $user->permissions->pluck('name')->join(', ') ?: '—' }}</td>
                                     <td class="py-2 space-x-2">

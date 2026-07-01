@@ -36,6 +36,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'network_username' => $data['network_username'] ?? null,
             'password' => bcrypt($data['password']),
             'email_verified_at' => now(),
         ]);
@@ -61,6 +62,7 @@ class UserController extends Controller
 
         $user->name = $data['name'];
         $user->email = $data['email'];
+        $user->network_username = $data['network_username'] ?? null;
 
         if (! empty($data['password'])) {
             $user->password = bcrypt($data['password']);
@@ -93,6 +95,7 @@ class UserController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user?->id)],
+            'network_username' => ['nullable', 'string', 'max:255'],
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:8'],
             'roles' => ['array'],
             'roles.*' => ['string', Rule::exists('roles', 'name')],
