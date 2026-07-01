@@ -1,0 +1,14 @@
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Containerfile
+    network_mode: host
+    env_file:
+      - .env
+    volumes:
+      - ./database/database.sqlite:/var/www/html/database/database.sqlite
+      - ./storage:/var/www/html/storage
+      - /mnt/usbdisk:/mnt/usbdisk
+      - /var/lib/samba:/var/lib/samba:ro
+    restart: unless-stopped
