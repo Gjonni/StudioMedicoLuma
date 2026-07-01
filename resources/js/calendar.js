@@ -27,6 +27,73 @@ async function api(url, options = {}) {
     return response.status === 204 ? null : response.json();
 }
 
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) {
+        return;
+    }
+
+    const colors = {
+        success: 'bg-emerald-600',
+        error: 'bg-red-600',
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `${colors[type] ?? colors.success} text-white text-sm px-4 py-3 rounded-lg shadow-lg transition-opacity duration-300`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+/**
+ * Apre il modal di creazione/modifica evento e risolve con l'azione scelta
+ * dall'utente: { action: 'save' | 'delete' | 'cancel', title }.
+ */
+function openEventModal({ heading, initialTitle = '', allowDelete = false }) {
+    const modal = document.getElementById('event-modal');
+    const title = document.getElementById('event-modal-title');
+    const input = document.getElementById('event-modal-input');
+    const confirmBtn = document.getElementById('event-modal-confirm');
+    const cancelBtn = document.getElementById('event-modal-cancel');
+    const deleteBtn = document.getElementById('event-modal-delete');
+
+    title.textContent = heading;
+    input.value = initialTitle;
+    deleteBtn.classList.toggle('hidden', !allowDelete);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    input.focus();
+
+    return new Promise((resolve) => {
+        const close = (result) => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+            deleteBtn.removeEventListener('click', onDelete);
+            input.removeEventListener('keydown', onKeydown);
+            resolve(result);
+        };
+
+        const onConfirm = () => close({ action: 'save', title: input.value.trim() });
+        const onCancel = () => close({ action: 'cancel' });
+        const onDelete = () => close({ action: 'delete' });
+        const onKeydown = (e) => {
+            if (e.key === 'Enter') onConfirm();
+            if (e.key === 'Escape') onCancel();
+        };
+
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        deleteBtn.addEventListener('click', onDelete);
+        input.addEventListener('keydown', onKeydown);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('calendar');
     if (!el) {
@@ -52,20 +119,22 @@ document.addEventListener('DOMContentLoaded', () => {
         events: { url: eventsUrl },
 
         select: async (info) => {
-            const title = window.prompt('Titolo evento:');
+            const result = await openEventModal({ heading: 'Nuovo evento' });
             calendar.unselect();
-            if (!title) {
+
+            if (result.action !== 'save' || !result.title) {
                 return;
             }
 
             try {
                 await api(storeUrl, {
                     method: 'POST',
-                    body: JSON.stringify({ title, start: info.startStr, end: info.endStr }),
+                    body: JSON.stringify({ title: result.title, start: info.startStr, end: info.endStr }),
                 });
                 calendar.refetchEvents();
+                showToast('Evento creato.');
             } catch (e) {
-                window.alert('Impossibile creare l\'evento.');
+                showToast('Impossibile creare l\'evento.', 'error');
             }
         },
 
@@ -79,8 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         end: info.event.endStr || info.event.startStr,
                     }),
                 });
+                showToast('Evento spostato.');
             } catch (e) {
-                window.alert('Impossibile spostare l\'evento.');
+                showToast('Impossibile spostare l\'evento.', 'error');
                 info.revert();
             }
         },
@@ -95,43 +165,45 @@ document.addEventListener('DOMContentLoaded', () => {
                         end: info.event.endStr,
                     }),
                 });
+                showToast('Evento aggiornato.');
             } catch (e) {
-                window.alert('Impossibile ridimensionare l\'evento.');
+                showToast('Impossibile ridimensionare l\'evento.', 'error');
                 info.revert();
             }
         },
 
         eventClick: async (info) => {
-            const action = window.prompt('Scrivi "modifica" per rinominare o "elimina" per rimuovere:', 'modifica');
+            const result = await openEventModal({
+                heading: 'Modifica evento',
+                initialTitle: info.event.title,
+                allowDelete: true,
+            });
 
-            if (action === 'elimina') {
+            if (result.action === 'delete') {
                 try {
                     await api(`${storeUrl}/${info.event.id}`, { method: 'DELETE' });
                     info.event.remove();
+                    showToast('Evento eliminato.');
                 } catch (e) {
-                    window.alert('Impossibile eliminare l\'evento.');
+                    showToast('Impossibile eliminare l\'evento.', 'error');
                 }
                 return;
             }
 
-            if (action === 'modifica') {
-                const title = window.prompt('Nuovo titolo:', info.event.title);
-                if (!title) {
-                    return;
-                }
-
+            if (result.action === 'save' && result.title) {
                 try {
                     await api(`${storeUrl}/${info.event.id}`, {
                         method: 'PUT',
                         body: JSON.stringify({
-                            title,
+                            title: result.title,
                             start: info.event.startStr,
                             end: info.event.endStr || info.event.startStr,
                         }),
                     });
-                    info.event.setProp('title', title);
+                    info.event.setProp('title', result.title);
+                    showToast('Evento aggiornato.');
                 } catch (e) {
-                    window.alert('Impossibile modificare l\'evento.');
+                    showToast('Impossibile modificare l\'evento.', 'error');
                 }
             }
         },
