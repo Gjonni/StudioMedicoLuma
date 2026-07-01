@@ -13,9 +13,23 @@ class SambaController extends Controller
 
     public function index(): View
     {
+        $users = $this->samba->getConnectedUsers();
+
         return view('modules.samba', [
             'disk' => $this->samba->getDiskUsage(),
-            'users' => $this->samba->getConnectedUsers(),
+            'usersEmpty' => empty($users),
+            'columns' => [
+                ['name' => 'PID'],
+                ['name' => 'Utente'],
+                ['name' => 'Gruppo'],
+                ['name' => 'Macchina'],
+            ],
+            'rows' => array_map(fn (array $user) => [
+                $user['pid'],
+                $user['username'],
+                $user['group'],
+                $user['machine'],
+            ], $users),
         ]);
     }
 }

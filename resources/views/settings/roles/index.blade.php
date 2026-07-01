@@ -9,7 +9,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             @if (session('status'))
                 <div class="bg-green-100 text-green-800 p-4 rounded">{{ session('status') }}</div>
@@ -21,33 +21,7 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <table class="w-full text-sm text-left">
-                        <thead>
-                            <tr class="border-b">
-                                <th class="py-2">Nome</th>
-                                <th class="py-2">Permessi</th>
-                                <th class="py-2"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($roles as $role)
-                                <tr class="border-b">
-                                    <td class="py-2">{{ $role->name }}</td>
-                                    <td class="py-2">{{ $role->permissions->pluck('name')->join(', ') ?: '—' }}</td>
-                                    <td class="py-2 space-x-2">
-                                        <a href="{{ route('settings.roles.edit', $role) }}" class="text-sky-600 hover:underline">Modifica</a>
-                                        @if ($role->name !== 'admin')
-                                            <form method="POST" action="{{ route('settings.roles.destroy', $role) }}" class="inline" onsubmit="return confirm('Eliminare questo ruolo?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:underline">Elimina</button>
-                                            </form>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <x-data-table :columns="$columns" :rows="$rows" />
                 </div>
             </div>
 

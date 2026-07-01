@@ -15,9 +15,44 @@ class UserController extends Controller
 {
     public function index(): View
     {
+        $users = User::with(['roles', 'permissions'])->orderBy('name')->get();
+
         return view('settings.users.index', [
-            'users' => User::with(['roles', 'permissions'])->orderBy('name')->get(),
+            'columns' => [
+                ['name' => 'Nome'],
+                ['name' => 'Email'],
+                ['name' => 'Username di rete'],
+                ['name' => 'Ruoli'],
+                ['name' => 'Permessi diretti'],
+                ['name' => '', 'html' => true],
+            ],
+            'rows' => $users->map(fn (User $user) => [
+                $user->name,
+                $user->email,
+                $user->network_username ?: '—',
+                $user->roles->pluck('name')->join(', ') ?: '—',
+                $user->permissions->pluck('name')->join(', ') ?: '—',
+                $this->actionsCell($user),
+            ])->all(),
         ]);
+    }
+
+    protected function actionsCell(User $user): string
+    {
+        $edit = '<a href="'.e(route('settings.users.edit', $user)).'" class="text-sky-600 hover:underline">Modifica</a>';
+
+        if ($user->id === auth()->id()) {
+            return $edit;
+        }
+
+        $token = csrf_token();
+        $url = e(route('settings.users.destroy', $user));
+
+        return $edit.' <form method="POST" action="'.$url.'" class="inline" onsubmit="return confirm(\'Eliminare questo utente?\');">'
+            .'<input type="hidden" name="_token" value="'.e($token).'">'
+            .'<input type="hidden" name="_method" value="DELETE">'
+            .'<button type="submit" class="text-red-600 hover:underline ml-2">Elimina</button>'
+            .'</form>';
     }
 
     public function create(): View

@@ -17,10 +17,36 @@ class PrintController extends Controller
 
     public function index(): View
     {
+        $jobs = $this->cups->getJobs();
+
         return view('modules.print', [
             'status' => $this->cups->getPrinterStatus(),
-            'jobs' => $this->cups->getJobs(),
+            'columns' => [
+                ['name' => 'Job'],
+                ['name' => 'Utente'],
+                ['name' => 'Dimensione'],
+                ['name' => 'Inviato'],
+                ['name' => '', 'html' => true],
+            ],
+            'rows' => array_map(fn (array $job) => [
+                $job['id'],
+                $job['user'],
+                $job['size'],
+                $job['submitted_at'],
+                $this->cancelCell($job['id']),
+            ], $jobs),
         ]);
+    }
+
+    protected function cancelCell(string $jobId): string
+    {
+        $token = csrf_token();
+        $url = e(route('print.cancel', $jobId));
+
+        return '<form method="POST" action="'.$url.'">'
+            .'<input type="hidden" name="_token" value="'.e($token).'">'
+            .'<button type="submit" class="text-red-600 hover:underline">Annulla</button>'
+            .'</form>';
     }
 
     public function setup(Request $request): View

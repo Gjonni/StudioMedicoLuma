@@ -14,9 +14,38 @@ class RoleController extends Controller
 {
     public function index(): View
     {
+        $roles = Role::with('permissions')->orderBy('name')->get();
+
         return view('settings.roles.index', [
-            'roles' => Role::with('permissions')->orderBy('name')->get(),
+            'columns' => [
+                ['name' => 'Nome'],
+                ['name' => 'Permessi'],
+                ['name' => '', 'html' => true],
+            ],
+            'rows' => $roles->map(fn (Role $role) => [
+                $role->name,
+                $role->permissions->pluck('name')->join(', ') ?: '—',
+                $this->actionsCell($role),
+            ])->all(),
         ]);
+    }
+
+    protected function actionsCell(Role $role): string
+    {
+        $edit = '<a href="'.e(route('settings.roles.edit', $role)).'" class="text-sky-600 hover:underline">Modifica</a>';
+
+        if ($role->name === 'admin') {
+            return $edit;
+        }
+
+        $token = csrf_token();
+        $url = e(route('settings.roles.destroy', $role));
+
+        return $edit.' <form method="POST" action="'.$url.'" class="inline" onsubmit="return confirm(\'Eliminare questo ruolo?\');">'
+            .'<input type="hidden" name="_token" value="'.e($token).'">'
+            .'<input type="hidden" name="_method" value="DELETE">'
+            .'<button type="submit" class="text-red-600 hover:underline ml-2">Elimina</button>'
+            .'</form>';
     }
 
     public function create(): View

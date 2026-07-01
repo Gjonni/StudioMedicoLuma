@@ -16,17 +16,33 @@ class AdguardController extends Controller
 
     public function index(): View
     {
+        $columns = [
+            ['name' => 'Ora'],
+            ['name' => 'Dominio'],
+            ['name' => 'Client'],
+            ['name' => 'Esito'],
+        ];
+
         try {
+            $queryLog = $this->adguard->getQueryLog();
+
             return view('modules.adguard', [
                 'status' => $this->adguard->getStatus(),
                 'stats' => $this->adguard->getStats(),
-                'queryLog' => $this->adguard->getQueryLog(),
+                'columns' => $columns,
+                'rows' => array_map(fn (array $entry) => [
+                    $entry['time'] ?? '',
+                    $entry['question']['name'] ?? '',
+                    $entry['client'] ?? '',
+                    $entry['reason'] ?? '',
+                ], $queryLog),
             ]);
         } catch (Throwable $e) {
             return view('modules.adguard', [
                 'status' => [],
                 'stats' => [],
-                'queryLog' => [],
+                'columns' => $columns,
+                'rows' => [],
                 'connectionError' => 'Impossibile contattare AdGuard Home: '.$e->getMessage(),
             ]);
         }
