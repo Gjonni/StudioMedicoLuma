@@ -1,16 +1,16 @@
-FROM composer:2 AS vendor
+FROM docker.io/library/composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --no-scripts --no-progress --prefer-dist
 
-FROM node:22-alpine AS assets
+FROM docker.io/library/node:22-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM alpine:3.21
+FROM docker.io/library/alpine:3.21
 
 RUN apk add --no-cache \
 	php84 \
